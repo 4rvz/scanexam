@@ -51,4 +51,17 @@ describe('template store', () => {
     expect(() => templateStore.import(JSON.stringify({ ...template, answers: { '01': 'A' } }))).toThrow();
     expect(() => templateStore.import(JSON.stringify({ ...template, answers: { '1': 'A', '01': 'B' } }))).toThrow();
   });
+
+  it('rejects raw JSON with duplicate answer keys', () => {
+    const validBackup = templateStore.export({ ...template, answers: { 1: 'A' } });
+    const duplicateKeyBackup = validBackup.replace('"answers":{"1":"A"}', '"answers":{"1":"A","1":"B"}');
+
+    expect(() => templateStore.import(duplicateKeyBackup)).toThrow('Invalid template backup.');
+  });
+
+  it('imports backups whose values contain escaped strings', () => {
+    const escapedTemplate = { ...template, title: 'Text that resembles keys: "1":"A", "1":"B"' };
+
+    expect(templateStore.import(templateStore.export(escapedTemplate))).toEqual(escapedTemplate);
+  });
 });
