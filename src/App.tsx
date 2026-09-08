@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { AnswerKeyEditor } from './components/AnswerKeyEditor';
+import { CameraScanner } from './components/CameraScanner';
 import { TemplateEditor } from './components/TemplateEditor';
 import type { WorksheetTemplate } from './domain/template';
 
-type TeacherScreen = 'home' | 'worksheet' | 'answer-key';
+type TeacherScreen = 'home' | 'worksheet' | 'answer-key' | 'scan';
 
 export default function App() {
   const [screen, setScreen] = useState<TeacherScreen>('home');
@@ -27,9 +28,9 @@ export default function App() {
       <nav aria-label="Main actions">
         <button type="button" onClick={() => setScreen('worksheet')}>Create worksheet</button>
         <button type="button" onClick={() => showAnswerKey()}>Answer key</button>
-        <button type="button" aria-describedby="scan-next-task">Scan sheets</button>
+        <button type="button" aria-describedby="scan-guidance" onClick={() => setScreen('scan')}>Scan sheets</button>
       </nav>
-      <p id="scan-next-task">Camera scanning opens in the next task.</p>
+      <p id="scan-guidance">Select a worksheet, then open Scan sheets to capture answer sheets.</p>
       {screen === 'worksheet' && (
         <TemplateEditor
           onSaved={template => showAnswerKey(template)}
@@ -43,6 +44,15 @@ export default function App() {
         <section aria-labelledby="choose-worksheet-heading">
           <h2 id="choose-worksheet-heading">Choose a worksheet first</h2>
           <p>Create or select a worksheet before entering its answer key.</p>
+          <button type="button" onClick={() => setScreen('worksheet')}>Create worksheet</button>
+        </section>
+      ))}
+      {screen === 'scan' && (selectedTemplate ? (
+        <CameraScanner template={selectedTemplate} onScanned={() => undefined} onError={() => undefined} />
+      ) : (
+        <section aria-labelledby="choose-scan-worksheet-heading">
+          <h2 id="choose-scan-worksheet-heading">Choose a worksheet first</h2>
+          <p>Create or select a worksheet before scanning its answer sheets.</p>
           <button type="button" onClick={() => setScreen('worksheet')}>Create worksheet</button>
         </section>
       ))}
