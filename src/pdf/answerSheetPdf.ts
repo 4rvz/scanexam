@@ -3,19 +3,45 @@ import * as QRCode from 'qrcode';
 import { getAllPageLayouts, type PageLayout } from '../domain/layout';
 import type { WorksheetTemplate } from '../domain/template';
 
+export interface AnswerSheetPdfDocument {
+  addPage(format: 'a4', orientation: 'portrait'): void;
+  setFont(fontName: string, fontStyle: string): void;
+  setFontSize(size: number): void;
+  text(value: string, x: number, y: number): void;
+  setFillColor(red: number, green: number, blue: number): void;
+  rect(x: number, y: number, width: number, height: number, style: 'F'): void;
+  setDrawColor(red: number, green: number, blue: number): void;
+  setLineWidth(width: number): void;
+  circle(x: number, y: number, radius: number, style: 'S'): void;
+  addImage(data: string, format: 'PNG', x: number, y: number, width: number, height: number): void;
+}
+
+type QrDataUrlFactory = (payload: string) => Promise<string>;
+
 export async function createAnswerSheetPdf(template: WorksheetTemplate): Promise<Blob> {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const layouts = getAllPageLayouts(template);
-
-  for (const [pageIndex, layout] of layouts.entries()) {
-    if (pageIndex > 0) pdf.addPage('a4', 'portrait');
-    await drawPage(pdf, template, layout);
-  }
-
+  await renderAnswerSheetPdf(pdf, template, createQrDataUrl);
   return pdf.output('blob');
 }
 
-async function drawPage(pdf: jsPDF, template: WorksheetTemplate, layout: PageLayout): Promise<void> {
+export async function renderAnswerSheetPdf(
+  pdf: AnswerSheetPdfDocument,
+  template: WorksheetTemplate,
+  createQrDataUrl: QrDataUrlFactory,
+): Promise<void> {
+  const layouts = getAllPageLayouts(template);
+  for (const [pageIndex, layout] of layouts.entries()) {
+    if (pageIndex > 0) pdf.addPage('a4', 'portrait');
+    await drawPage(pdf, template, layout, createQrDataUrl);
+  }
+}
+
+async function drawPage(
+  pdf: AnswerSheetPdfDocument,
+  template: WorksheetTemplate,
+  layout: PageLayout,
+  createQrDataUrl: QrDataUrlFactory,
+): Promise<void> {
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);
   pdf.text(template.title, 18, 26);
@@ -24,17 +50,14 @@ async function drawPage(pdf: jsPDF, template: WorksheetTemplate, layout: PageLay
   pdf.text(`Page ${layout.pageIndex + 1}`, 18, 33);
   pdf.setFontSize(8);
   pdf.text('Use a dark pencil or pen. Fill one bubble completely. Print at actual size (100%).', 18, 40);
+  pdf.text('Do not use fit-to-page or scaling. Use dark, fully filled marks.', 18, 44);
 
   for (const marker of layout.markers) {
     pdf.setFillColor(0, 0, 0);
     pdf.rect(marker.x, marker.y, marker.size, marker.size, 'F');
   }
 
-  const qrDataUrl = await QRCode.toDataURL(JSON.stringify(layout.qrCode.payload), {
-    errorCorrectionLevel: 'M',
-    margin: 0,
-    width: 200,
-  });
+  const qrDataUrl = await createQrDataUrl(JSON.stringify(layout.qrCode.payload));
   pdf.addImage(qrDataUrl, 'PNG', layout.qrCode.x, layout.qrCode.y, layout.qrCode.size, layout.qrCode.size);
 
   for (const question of layout.questions) {
@@ -49,4 +72,12 @@ async function drawPage(pdf: jsPDF, template: WorksheetTemplate, layout: PageLay
       pdf.text(option, bubble.x - 1.2, bubble.y + 1);
     }
   }
+}
+
+function createQrDataUrl(payload: string): Promise<string> {
+  return QRCode.toDataURL(payload, {
+    errorCorrectionLevel: 'M',
+    margin: 0,
+    width: 200,
+  });
 }
