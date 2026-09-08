@@ -30,6 +30,12 @@ describe('template store', () => {
     expect(templateStore.import(templateStore.export(template))).toEqual(template);
   });
 
+  it('exports only persisted template properties', () => {
+    const augmentedTemplate = { ...template, scanData: { student: 'Ada', score: 2 } };
+
+    expect(JSON.parse(templateStore.export(augmentedTemplate))).toEqual(template);
+  });
+
   it('rejects invalid backups without changing existing records', async () => {
     await templateStore.put(template);
 
@@ -39,5 +45,10 @@ describe('template store', () => {
 
   it('rejects backups with malformed answer options', () => {
     expect(() => templateStore.import(JSON.stringify({ ...template, answers: { 1: 'AA' } }))).toThrow();
+  });
+
+  it('rejects noncanonical answer keys and duplicate logical questions', () => {
+    expect(() => templateStore.import(JSON.stringify({ ...template, answers: { '01': 'A' } }))).toThrow();
+    expect(() => templateStore.import(JSON.stringify({ ...template, answers: { '1': 'A', '01': 'B' } }))).toThrow();
   });
 });

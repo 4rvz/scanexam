@@ -33,4 +33,36 @@ describe('answer key CSV import', () => {
       errors: ['Row 1: answer AA is invalid for 4 options.', 'Questions 1 are missing.'],
     });
   });
+
+  it('reports duplicates even when the first in-range question has an invalid answer', () => {
+    expect(parseAnswerKeyCsv('1,X\n1,A', 1, 4)).toEqual({
+      ok: false,
+      errors: [
+        'Row 1: answer X is invalid for 4 options.',
+        'Row 2: question 1 is duplicated.',
+        'Questions 1 are missing.',
+      ],
+    });
+  });
+
+  it('ignores blank lines around a headered answer key', () => {
+    expect(parseAnswerKeyCsv('question,answer\n\n1,A\n\n2,D\n', 2, 4)).toEqual({
+      ok: true,
+      answers: { 1: 'A', 2: 'D' },
+    });
+  });
+
+  it('rejects rows with malformed column counts', () => {
+    expect(parseAnswerKeyCsv('1,A,extra', 1, 4)).toEqual({
+      ok: false,
+      errors: ['Row 1: expected a question number and answer.', 'Questions 1 are missing.'],
+    });
+  });
+
+  it('starts error row numbering after the optional header', () => {
+    expect(parseAnswerKeyCsv('question,answer\n1,E', 1, 4)).toEqual({
+      ok: false,
+      errors: ['Row 1: answer E is invalid for 4 options.', 'Questions 1 are missing.'],
+    });
+  });
 });

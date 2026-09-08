@@ -20,6 +20,7 @@ function validateCsvRows(
   optionCount: OptionCount,
 ): CsvImportResult {
   const answers: Record<number, AnswerOption> = {};
+  const seenQuestions = new Set<number>();
   const errors: string[] = [];
 
   rows.forEach((row, index) => {
@@ -36,10 +37,11 @@ function validateCsvRows(
       errors.push(`Row ${rowNumber}: question ${question} must be between 1 and ${itemCount}.`);
       return;
     }
-    if (question in answers) {
+    if (seenQuestions.has(question)) {
       errors.push(`Row ${rowNumber}: question ${question} is duplicated.`);
       return;
     }
+    seenQuestions.add(question);
     if (!isValidAnswerOption(answer, optionCount)) {
       errors.push(`Row ${rowNumber}: answer ${answer || '(blank)'} is invalid for ${optionCount} options.`);
       return;

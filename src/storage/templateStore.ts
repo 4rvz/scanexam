@@ -32,7 +32,8 @@ export async function removeTemplate(id: string): Promise<void> {
 }
 
 export function exportTemplate(template: WorksheetTemplate): string {
-  return JSON.stringify(template);
+  const { id, title, itemCount, optionCount, answers, layoutVersion, createdAt, updatedAt } = template;
+  return JSON.stringify({ id, title, itemCount, optionCount, answers, layoutVersion, createdAt, updatedAt });
 }
 
 export function importTemplate(json: string): WorksheetTemplate {
@@ -71,13 +72,18 @@ function validateImportedTemplate(value: unknown): WorksheetTemplate {
 function isAnswerRecord(value: unknown, itemCount: number, optionCount: OptionCount): value is Record<number, AnswerOption> {
   if (!isRecord(value)) return false;
 
+  const questionNumbers = new Set<number>();
   return Object.entries(value).every(([question, answer]) => {
     const questionNumber = Number(question);
-    return Number.isInteger(questionNumber)
+    const isValid = Number.isInteger(questionNumber)
+      && String(questionNumber) === question
       && questionNumber >= 1
       && questionNumber <= itemCount
       && typeof answer === 'string'
       && ['A', 'B', 'C', 'D', 'E'].slice(0, optionCount).includes(answer as AnswerOption);
+    if (!isValid || questionNumbers.has(questionNumber)) return false;
+    questionNumbers.add(questionNumber);
+    return true;
   });
 }
 
