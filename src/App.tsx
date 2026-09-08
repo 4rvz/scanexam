@@ -14,18 +14,27 @@ export default function App() {
     setScreen('answer-key');
   }
 
+  function clearDeletedTemplate(template: WorksheetTemplate) {
+    if (selectedTemplate?.id === template.id) {
+      setSelectedTemplate(undefined);
+      setScreen('worksheet');
+    }
+  }
+
   return (
     <main>
       <h1>Exam Checker</h1>
       <nav aria-label="Main actions">
         <button type="button" onClick={() => setScreen('worksheet')}>Create worksheet</button>
         <button type="button" onClick={() => showAnswerKey()}>Answer key</button>
-        <button type="button">Scan sheets</button>
+        <button type="button" aria-describedby="scan-next-task">Scan sheets</button>
       </nav>
+      <p id="scan-next-task">Camera scanning opens in the next task.</p>
       {screen === 'worksheet' && (
         <TemplateEditor
           onSaved={template => showAnswerKey(template)}
           onSelected={template => showAnswerKey(template)}
+          onDeleted={clearDeletedTemplate}
         />
       )}
       {screen === 'answer-key' && (selectedTemplate ? (

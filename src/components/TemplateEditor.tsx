@@ -5,9 +5,10 @@ import { templateStore } from '../storage/templateStore';
 interface TemplateEditorProps {
   onSaved(template: WorksheetTemplate): void;
   onSelected?(template: WorksheetTemplate): void;
+  onDeleted?(template: WorksheetTemplate): void;
 }
 
-export function TemplateEditor({ onSaved, onSelected }: TemplateEditorProps) {
+export function TemplateEditor({ onSaved, onSelected, onDeleted }: TemplateEditorProps) {
   const [title, setTitle] = useState('');
   const [itemCount, setItemCount] = useState(20);
   const [optionCount, setOptionCount] = useState<OptionCount>(4);
@@ -38,6 +39,7 @@ export function TemplateEditor({ onSaved, onSelected }: TemplateEditorProps) {
 
   async function remove(template: WorksheetTemplate) {
     await templateStore.remove(template.id);
+    onDeleted?.(template);
     await refreshTemplates();
   }
 
