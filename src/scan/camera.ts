@@ -5,9 +5,15 @@ const rearCameraConstraints: MediaStreamConstraints = {
 
 export async function startCamera(video: HTMLVideoElement): Promise<MediaStream> {
   const stream = await navigator.mediaDevices.getUserMedia(rearCameraConstraints);
-  video.srcObject = stream;
-  await video.play();
-  return stream;
+  try {
+    video.srcObject = stream;
+    await video.play();
+    return stream;
+  } catch (error) {
+    video.srcObject = null;
+    stopCamera(stream);
+    throw error;
+  }
 }
 
 export function stopCamera(stream: MediaStream | null): void {

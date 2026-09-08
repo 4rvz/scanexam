@@ -29,3 +29,19 @@ The same test command then passed all three assertions: rear-camera constraints 
 ## Final verification
 
 `git diff --check`, `npm run test`, and `npm run build` completed successfully. The full suite contains 38 passing tests across 11 files. The production build completed with Vite's existing large-chunk advisory and no build errors.
+
+## Fix round 1: release stream after preview playback failure
+
+### Root cause
+
+`startCamera` acquired a stream before awaiting `video.play()`. If playback rejected, the function threw before returning the stream to `CameraScanner`, leaving no owner able to stop its tracks or clear the preview source.
+
+### RED
+
+Added a regression test that makes `video.play()` reject after `getUserMedia` resolves. Before the fix, `npm run test -- src/test/camera.test.ts` failed because the acquired track's `stop` method was never called.
+
+### Fix and verification
+
+`startCamera` now wraps preview attachment and playback in `try`/`catch`, clears `video.srcObject`, stops every acquired track, and rethrows the original playback error.
+
+Focused verification passed 11 tests across `camera`, `CameraScanner`, and `App`. Final verification passed `git diff --check`, `npm run test` with 39 tests across 11 files, and `npm run build`. The build retains only Vite's large-chunk advisory.

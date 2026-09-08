@@ -27,6 +27,22 @@ describe('startCamera', () => {
     expect(play).toHaveBeenCalledOnce();
   });
 
+  it('releases an acquired stream when preview playback is rejected', async () => {
+    const stop = vi.fn();
+    const stream = { getTracks: () => [{ stop }] } as unknown as MediaStream;
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue(stream) },
+    });
+    const video = document.createElement('video');
+    vi.spyOn(video, 'play').mockRejectedValue(new Error('Playback blocked'));
+
+    await expect(startCamera(video)).rejects.toThrow('Playback blocked');
+
+    expect(stop).toHaveBeenCalledOnce();
+    expect(video.srcObject).toBeNull();
+  });
+
   it('stops every camera track when the stream is released', () => {
     const firstTrack = { stop: vi.fn() } as unknown as MediaStreamTrack;
     const secondTrack = { stop: vi.fn() } as unknown as MediaStreamTrack;
