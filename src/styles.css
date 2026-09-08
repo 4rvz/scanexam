@@ -9,7 +9,7 @@ body {
 }
 
 main {
-  max-width: 48rem;
+  max-width: 64rem;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -24,4 +24,82 @@ button {
   min-height: 2.75rem;
   padding: 0.5rem 1rem;
   font: inherit;
+}
+
+section {
+  margin-top: 2rem;
+}
+
+form,
+.backup-controls {
+  display: grid;
+  gap: 1rem;
+  max-width: 30rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+input,
+select {
+  min-height: 2.5rem;
+  box-sizing: border-box;
+  padding: 0.4rem 0.55rem;
+  font: inherit;
+}
+
+.template-list,
+.template-list li {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.template-list li {
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.answer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+fieldset button[aria-pressed='true'] {
+  color: white;
+  background: #1d4ed8;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+@media (max-width: 36rem) {
+  main {
+    padding: 1rem;
+  }
+
+  .template-list li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .template-list li span {
+    grid-column: 1 / -1;
+  }
 }

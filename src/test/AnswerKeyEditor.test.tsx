@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AnswerKeyEditor } from '../components/AnswerKeyEditor';
 import type { WorksheetTemplate } from '../domain/template';
@@ -34,10 +34,10 @@ describe('AnswerKeyEditor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save answer key' }));
     expect(screen.getByText(/select one answer for every question/i)).toBeVisible();
 
-    const firstAnswer = screen.getByRole('button', { name: 'A', pressed: false });
+    const firstAnswer = within(screen.getByRole('group', { name: 'Question 1' })).getByRole('button', { name: 'A' });
     firstAnswer.focus();
     fireEvent.keyDown(firstAnswer, { key: 'Enter' });
-    fireEvent.click(screen.getByRole('button', { name: 'B', pressed: false }));
+    fireEvent.click(within(screen.getByRole('group', { name: 'Question 2' })).getByRole('button', { name: 'B' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save answer key' }));
 
     await waitFor(() => {
